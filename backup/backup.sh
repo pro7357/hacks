@@ -1,7 +1,6 @@
 #!/usr/bin/bash
 _help(){ cat <<E0F
-Caution: Much hardcoded.
-         This script is mostly useless to anyone but me.
+Caution: Much hardcoded, therefore mostly useless to anyone but me.
 
 Usage: backup [OPTION]... [COMMAND]...
 With no OPTION or COMMAND, do the basic backup
@@ -43,37 +42,67 @@ _init(){
         if $verbose; then echo "$status"; fi
         exit 1
     fi
+
+    # Prep boot
+    if [[ ! -f /media/arch/boot/initramfs-linux-fallback.img ]]; then
+        sudo mount -t ext4 /dev/disk/by-uuid/$uuid_boot_ssd /media/arch/boot
+    fi
+
+    # Verify boot
+    if [[ ! -f /media/arch/boot/initramfs-linux-fallback.img ]]; then
+        status="Error: fail mounting backup boot"
+        if $verbose; then echo "$status"; fi
+        exit 2
+    fi
+
 }
 _init
 
 _main(){
+    verify_ssd
+
+    if [[ $1 == 'full' ]]; then
+        full_system
+    elif [[ -z $1 ]]; then
+        basic_backup
+    else
+        status="Unknown input: $@"
+        if $verbose; then echo "$status"; fi
+    fi
+}
+
+basic_backup(){
+    sudo rsync -vaHAXS --delete \
+        --exclude={"/dev/*","/proc/*","/sys/*","/tmp/*","/run/*","/mnt/*","/media/*","/lost+found"} \
+        --exclude={"/etc/fstab","/etc/default/grub","/boot/grub/grub.cfg"} \
+        --exclude={"/home/*/.data","/home/*/.tmp"} \
+        --exclude={"/home/d/music/*","/home/d/musics/*"} \
+        --exclude={"/home/*/.cache/chromium","/home/*/.config/chromium","/home/d/.local/opt/tor-browser/*"} \
+        / /media/arch
+}
+
+full_system(){
+    sudo rsync -vaHAXS --delete \
+        --exclude={"/dev/*","/proc/*","/sys/*","/tmp/*","/run/*","/mnt/*","/media/*","/lost+found"} \
+        --exclude={"/etc/fstab","/etc/default/grub","/boot/grub/grub.cfg"} \
+        --exclude={"/home/*/.data","/home/*/.tmp"} \
+        --exclude={"/home/d/music/*","/home/d/musics/*"} \
+        / /media/arch
+}
+
+verify_ssd(){
+    # Full system backup which is bootable on external ssd.
     if [[ -e /dev/disk/by-uuid/$uuid_ssd && \
         -f /media/arch/home/d/.bashrc && \
         -e /dev/disk/by-uuid/$uuid_nvme && \
         -f /home/d/.bashrc ]]
     then
-        live_ssd
+        return 0
     else
-        echo "nope"
+        status="Error: ssd not found"
+        if $verbose; then echo "$status"; fi
+        exit 3
     fi
-
-}
-
-live_ssd(){
-    # Full system backup which is bootable on external ssd.
-    if [[ ! -f /media/arch/boot/initramfs-linux-fallback.img ]]; then
-        sudo mount -t ext4 /dev/disk/by-uuid/$uuid_boot_ssd /media/arch/boot
-    fi
-
-    if [[ ! -f /media/arch/boot/initramfs-linux-fallback.img ]]; then
-        #double check, exit if fail
-        return
-    fi
-
-    sudo rsync -vaHAXS --delete \
-        --exclude={"/dev/*","/proc/*","/sys/*","/tmp/*","/run/*","/mnt/*","/media/*","/lost+found"} \
-        --exclude={"/etc/fstab","/etc/default/grub","/boot/grub/grub.cfg"} \
-        / /media/arch
 }
 
 
@@ -86,8 +115,7 @@ _menu(){
     elif [[ -z $1 ]]; then
         _main
     else
-        #_main "$@"
-        echo "$@"
+        _main "$@"
     fi
 }
 
