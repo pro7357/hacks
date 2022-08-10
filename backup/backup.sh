@@ -78,6 +78,7 @@ basic_backup(){
         --exclude={"/home/*/.data","/home/*/.tmp"} \
         --exclude={"/home/d/music/*","/home/d/musics/*"} \
         --exclude={"/home/*/.cache/chromium","/home/*/.config/chromium","/home/d/.local/opt/tor-browser/*"} \
+        --exclude "/home/*/.cache/mesa_shader_cache" \
         / /media/arch
 }
 
