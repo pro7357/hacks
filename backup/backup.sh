@@ -77,6 +77,7 @@ basic_backup(){
         --exclude={"/etc/fstab","/etc/default/grub","/boot/grub/grub.cfg"} \
         --exclude={"/home/*/.data","/home/*/.tmp"} \
         --exclude={"/home/d/music/*","/home/d/musics/*"} \
+        --exclude "/home/d/qemu/*" \
         --exclude={"/home/*/.cache/chromium","/home/*/.config/chromium","/home/d/.local/opt/tor-browser/*"} \
         --exclude "/home/*/.cache/mesa_shader_cache" \
         / /media/arch
@@ -88,6 +89,7 @@ full_system(){
         --exclude={"/etc/fstab","/etc/default/grub","/boot/grub/grub.cfg"} \
         --exclude={"/home/*/.data","/home/*/.tmp"} \
         --exclude={"/home/d/music/*","/home/d/musics/*"} \
+        --exclude "/home/d/qemu/*" \
         / /media/arch
 }
 
