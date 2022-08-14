@@ -1,2 +1,2 @@
-# exclude every .env
+# exclude all .env in every folder
 **/.env
