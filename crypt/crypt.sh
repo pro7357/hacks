@@ -78,6 +78,9 @@ _openfile(){
 }
 
 _encrypt(){
+    ## safety check
+    _safety_check
+
     ## New folder
     find /tmp/$folder_name -type d -newer /tmp/$folder_name/updatemark | \
         while read -r folder; do
@@ -100,8 +103,6 @@ _encrypt(){
             mv "$file" "$encrypted_folder/${file:$plain_unit}"
         done
 
-    ## safety check before delete
-    _safety_check
     ## handle deletion
     find $encrypted_folder | \
         while read -r all; do
