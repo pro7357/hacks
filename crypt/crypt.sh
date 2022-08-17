@@ -59,6 +59,12 @@ _env_variable(){
 _env_variable
 
 _main(){
+    if [[ -e /tmp/$folder_name ]]; then
+        # will save plain files as encrypted one
+        _encrypt
+        return
+    fi
+
     _decrypt
     _autosave
     _openfile
