@@ -19,7 +19,7 @@ Status: This is an ongoing remake.
         Also experimenting with .env
 - [x] Full system backup to live external canvio
 - [x] update help
-- [ ] backup data on ssd
+- [x] backup data on ssd
 - [ ] Basic backup on pendrive
 E0F
 }
@@ -165,6 +165,20 @@ verify_hdd(){
     fi
 }
 
+data_ssd2canvio(){
+    if [[ -d /media/arch/home/data && \
+        -d /media/canvio/home/data ]]; then
+        :
+    else
+        status="Error: data on ssd or canvio is missing"
+        if $verbose; then echo "$status"; fi
+        exit
+    fi
+
+    sudo rsync -vaHAXS --delete \
+        /media/arch/home/data/ /media/canvio/home/data
+}
+
 _menu(){
     verify_nvme
 
@@ -172,10 +186,12 @@ _menu(){
         _help
     elif [[ -z $1 ]]; then
         _main
-    elif [[ $1 == 'full' ]]; then
+    elif [[ $1 == 'ssd' ]]; then
         full_system2ssd
     elif [[ $1 == 'canvio' ]]; then
         full_system2canvio
+    elif [[ $1 == 'data' ]]; then
+        data_ssd2canvio
     else
         echo "unknown: $@"
     fi
