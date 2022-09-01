@@ -68,6 +68,7 @@ _main(){
     _decrypt
     _autosave
     _openfile
+    _encrypt
 }
 
 _openfile(){
