@@ -60,15 +60,15 @@ _main(){
 basic_system2ssd(){
     verify_ssd
 
-    sudo rsync -vaHAXS --delete \
+    sudo rsync -vhaHAXS --delete \
         --exclude={"/dev/*","/proc/*","/sys/*","/tmp/*","/run/*","/mnt/*","/media/*","/lost+found"} \
         --exclude={"/etc/fstab","/etc/default/grub","/boot/grub/grub.cfg"} \
         --exclude={"/home/data","/home/backup","/home/expansion"} \
-        --exclude={"/home/*/.data","/home/*/.tmp"} \
-        --exclude={"/home/d/music","/home/d/musics"} \
+        --exclude={"/home/*/.data","/home/*/.tmp","/home/*/tmp"} \
         --exclude={"/home/d/qemu","/var/lib/libvirt/images"} \
         --exclude={"/home/*/.cache/chromium","/home/*/.config/chromium","/home/d/.local/opt/tor-browser"} \
         --exclude "/home/*/.cache/mesa_shader_cache" \
+        --exclude="/home/d/video" \
         / /media/arch
 }
 
@@ -76,11 +76,10 @@ basic_system2ssd(){
 full_system2ssd(){
     verify_ssd
 
-    sudo rsync -vaHAXS --delete \
+    sudo rsync -vhaHAXS --delete \
         --exclude={"/dev/*","/proc/*","/sys/*","/tmp/*","/run/*","/mnt/*","/media/*","/lost+found"} \
         --exclude={"/etc/fstab","/etc/default/grub","/boot/grub/grub.cfg"} \
         --exclude={"/home/data","/home/backup","/home/expansion"} \
-        --exclude={"/home/d/music/*","/home/d/musics/*"} \
         --exclude={"/home/d/qemu","/var/lib/libvirt/images"} \
         / /media/arch
 }
@@ -88,7 +87,7 @@ full_system2ssd(){
 full_system2canvio(){
     verify_hdd
 
-    sudo rsync -vaHAXS --delete \
+    sudo rsync -vhaHAXS --delete \
         --exclude={"/dev/*","/proc/*","/sys/*","/tmp/*","/run/*","/mnt/*","/media/*","/lost+found"} \
         --exclude={"/etc/fstab","/etc/default/grub","/boot/grub/grub.cfg"} \
         --exclude={"/home/data","/home/backup","/home/expansion"} \
@@ -175,7 +174,7 @@ data_ssd2canvio(){
         exit
     fi
 
-    sudo rsync -vaHAXS --delete \
+    sudo rsync -vhaHAXS --delete \
         /media/arch/home/data/ /media/canvio/home/data
 }
 
