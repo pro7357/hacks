@@ -63,7 +63,7 @@ basic_system2ssd(){
     sudo rsync -vaHAXS --delete \
         --exclude={"/dev/*","/proc/*","/sys/*","/tmp/*","/run/*","/mnt/*","/media/*","/lost+found"} \
         --exclude={"/etc/fstab","/etc/default/grub","/boot/grub/grub.cfg"} \
-        --exclude={"/home/data","/home/backup"} \
+        --exclude={"/home/data","/home/backup","/home/expansion"} \
         --exclude={"/home/*/.data","/home/*/.tmp"} \
         --exclude={"/home/d/music","/home/d/musics"} \
         --exclude={"/home/d/qemu","/var/lib/libvirt/images"} \
@@ -79,7 +79,7 @@ full_system2ssd(){
     sudo rsync -vaHAXS --delete \
         --exclude={"/dev/*","/proc/*","/sys/*","/tmp/*","/run/*","/mnt/*","/media/*","/lost+found"} \
         --exclude={"/etc/fstab","/etc/default/grub","/boot/grub/grub.cfg"} \
-        --exclude={"/home/data","/home/backup"} \
+        --exclude={"/home/data","/home/backup","/home/expansion"} \
         --exclude={"/home/d/music/*","/home/d/musics/*"} \
         --exclude={"/home/d/qemu","/var/lib/libvirt/images"} \
         / /media/arch
@@ -91,7 +91,7 @@ full_system2canvio(){
     sudo rsync -vaHAXS --delete \
         --exclude={"/dev/*","/proc/*","/sys/*","/tmp/*","/run/*","/mnt/*","/media/*","/lost+found"} \
         --exclude={"/etc/fstab","/etc/default/grub","/boot/grub/grub.cfg"} \
-        --exclude={"/home/data","/home/backup"} \
+        --exclude={"/home/data","/home/backup","/home/expansion"} \
         / /media/canvio
 }
 
