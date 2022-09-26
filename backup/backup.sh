@@ -18,7 +18,8 @@ Options:
 Status: This is an ongoing remake.
         Also experimenting with .env
 - [x] Basic backup on usb pendrive
-- [ ] move backup setting on external/target
+- [x] move backup setting on external/target -done on usb
+- [ ] refactor the rest
 E0F
 }
 
@@ -35,6 +36,8 @@ _init(){
     uuid_boot_ssd=$uuid_boot_ssd
     uuid_hdd=$uuid_hdd
     uuid_boot_hdd=$uuid_boot_hdd
+    uuid_usb=$uuid_usb
+    uuid_boot_usb=$uuid_boot_usb
 
     # Verify loading .env
     if [[ -z $uuid_ssd ]]; then
@@ -46,6 +49,10 @@ _init(){
 _init
 
 _main(){
+    if verify_usb; then
+        min_system2usb
+    fi
+
     basic_system2ssd
 }
 
@@ -93,12 +100,9 @@ full_system2canvio(){
 }
 
 min_system2usb(){
-    verify_usb
 
     sudo rsync -vhaHAXS --delete \
-        --exclude={"/dev/*","/proc/*","/sys/*","/tmp/*","/run/*","/mnt/*","/media/*","/lost+found"} \
-        --exclude={"/etc/fstab","/etc/default/grub","/boot/grub/grub.cfg"} \
-        --exclude={"/home/data","/home/backup","/home/expansion"} \
+        --exclude-from="/media/kingston/media/rsync_exclude.list" \
         / /media/kingston
 }
 
@@ -173,15 +177,10 @@ verify_hdd(){
 }
 
 verify_usb(){
-    if [[ -e /dev/disk/by-uuid/$uuid_usb && \
-        -f /media/kingston/home/d/.bashrc ]]; then
-        :
-    else
-        status="Error: external usb not found"
-        if $verbose; then echo "$status"; fi
-        exit 3
+    if [[ ! -e /dev/disk/by-uuid/$uuid_usb ]]; then
+        echo "err"
+        return 1
     fi
-
     # Prep boot
     if [[ ! -f /media/kingston/boot/initramfs-linux-fallback.img ]]; then
         sudo mount -t ext4 /dev/disk/by-uuid/$uuid_boot_usb /media/kingston/boot
@@ -191,8 +190,17 @@ verify_usb(){
     if [[ ! -f /media/kingston/boot/initramfs-linux-fallback.img ]]; then
         status="Error: fail mounting backup boot"
         if $verbose; then echo "$status"; fi
-        exit 2
+        return 2
     fi
+
+    # Verify mounted
+    if [[ ! -f /media/kingston/media/rsync_exclude.list ]]; then
+        status="Error: external usb not found"
+        if $verbose; then echo "$status"; fi
+        return 3
+    fi
+
+    return 0
 }
 
 data_ssd2canvio(){
@@ -221,7 +229,9 @@ _menu(){
     elif [[ $1 == 'canvio' ]]; then
         full_system2canvio
     elif [[ $1 == 'usb' ]]; then
-        min_system2usb
+        if verify_usb; then
+            min_system2usb
+        fi
     elif [[ $1 == 'data' ]]; then
         data_ssd2canvio
     else
