@@ -17,9 +17,11 @@ Options:
 
 Status: This is an ongoing remake.
         Also experimenting with .env
-- [x] Basic backup on usb pendrive
 - [x] move backup setting on external/target -done on usb
-- [ ] refactor the rest
+- [ ] move backup setting on other external/target
+- [x] refactor verify usb
+- [ ] refactor other verify
+- [ ] refactor menu
 E0F
 }
 
@@ -49,13 +51,16 @@ _init(){
 _init
 
 _main(){
-    if verify_usb; then
+    if _verify usb; then
         min_system2usb
     fi
 
     basic_system2ssd
 }
 
+_test(){
+    echo $1
+}
 #https://wiki.archlinux.org/title/Rsync#As_a_backup_utility
 # /dev/*            # only dir "dev" and not content. dev will be populated on boot.
 # "/home/data"      # will totally ignore /home/data
@@ -176,25 +181,49 @@ verify_hdd(){
     fi
 }
 
-verify_usb(){
-    if [[ ! -e /dev/disk/by-uuid/$uuid_usb ]]; then
+_verify(){
+    case $1 in
+    nvme)
+        uuid=$uuid_nvme
+        uuid_boot=$uuid_boot_nvme
+        target=".."
+        ;;
+    ssd)
+        uuid=$uuid_ssd
+        uuid_boot=$uuid_boot_ssd
+        target="arch"
+        ;;
+    canvio)
+        uuid=$uuid_hdd
+        uuid_boot=$uuid_boot_hdd
+        target="canvio"
+        ;;
+    usb|kingston)
+        uuid=$uuid_usb
+        uuid_boot=$uuid_boot_usb
+        target="kingston"
+        ;;
+    *) echo "errr" && exit 1 ;;
+    esac
+
+    if [[ ! -L /dev/disk/by-uuid/$uuid ]]; then
         echo "err"
         return 1
     fi
     # Prep boot
-    if [[ ! -f /media/kingston/boot/initramfs-linux-fallback.img ]]; then
-        sudo mount -t ext4 /dev/disk/by-uuid/$uuid_boot_usb /media/kingston/boot
+    if [[ ! -f /media/$target/boot/initramfs-linux-fallback.img ]]; then
+        sudo mount -t ext4 /dev/disk/by-uuid/$uuid_boot /media/$target/boot
     fi
 
     # Verify boot
-    if [[ ! -f /media/kingston/boot/initramfs-linux-fallback.img ]]; then
+    if [[ ! -f /media/$target/boot/initramfs-linux-fallback.img ]]; then
         status="Error: fail mounting backup boot"
         if $verbose; then echo "$status"; fi
         return 2
     fi
 
     # Verify mounted
-    if [[ ! -f /media/kingston/media/rsync_exclude.list ]]; then
+    if [[ ! -f /media/$target/media/rsync_exclude.list ]]; then
         status="Error: external usb not found"
         if $verbose; then echo "$status"; fi
         return 3
@@ -229,7 +258,7 @@ _menu(){
     elif [[ $1 == 'canvio' ]]; then
         full_system2canvio
     elif [[ $1 == 'usb' ]]; then
-        if verify_usb; then
+        if _verify usb; then
             min_system2usb
         fi
     elif [[ $1 == 'data' ]]; then
