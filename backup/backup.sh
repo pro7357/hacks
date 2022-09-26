@@ -17,10 +17,8 @@ Options:
 
 Status: This is an ongoing remake.
         Also experimenting with .env
-- [x] Full system backup to live external canvio
-- [x] update help
-- [x] backup data on ssd
-- [ ] Basic backup on pendrive
+- [x] Basic backup on usb pendrive
+- [ ] move backup setting on external/target
 E0F
 }
 
