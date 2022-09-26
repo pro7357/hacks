@@ -72,7 +72,7 @@ basic_system2ssd(){
         / /media/arch
 }
 
-# full except qemu image and music
+# full except qemu image
 full_system2ssd(){
     verify_ssd
 
@@ -92,6 +92,16 @@ full_system2canvio(){
         --exclude={"/etc/fstab","/etc/default/grub","/boot/grub/grub.cfg"} \
         --exclude={"/home/data","/home/backup","/home/expansion"} \
         / /media/canvio
+}
+
+min_system2usb(){
+    verify_usb
+
+    sudo rsync -vhaHAXS --delete \
+        --exclude={"/dev/*","/proc/*","/sys/*","/tmp/*","/run/*","/mnt/*","/media/*","/lost+found"} \
+        --exclude={"/etc/fstab","/etc/default/grub","/boot/grub/grub.cfg"} \
+        --exclude={"/home/data","/home/backup","/home/expansion"} \
+        / /media/kingston
 }
 
 verify_nvme(){
@@ -164,6 +174,29 @@ verify_hdd(){
     fi
 }
 
+verify_usb(){
+    if [[ -e /dev/disk/by-uuid/$uuid_usb && \
+        -f /media/kingston/home/d/.bashrc ]]; then
+        :
+    else
+        status="Error: external usb not found"
+        if $verbose; then echo "$status"; fi
+        exit 3
+    fi
+
+    # Prep boot
+    if [[ ! -f /media/kingston/boot/initramfs-linux-fallback.img ]]; then
+        sudo mount -t ext4 /dev/disk/by-uuid/$uuid_boot_usb /media/kingston/boot
+    fi
+
+    # Verify boot
+    if [[ ! -f /media/kingston/boot/initramfs-linux-fallback.img ]]; then
+        status="Error: fail mounting backup boot"
+        if $verbose; then echo "$status"; fi
+        exit 2
+    fi
+}
+
 data_ssd2canvio(){
     if [[ -d /media/arch/home/data && \
         -d /media/canvio/home/data ]]; then
@@ -185,10 +218,12 @@ _menu(){
         _help
     elif [[ -z $1 ]]; then
         _main
-    elif [[ $1 == 'ssd' ]]; then
+    elif [[ $1 == 'ssd' || $1 == 'full' ]]; then
         full_system2ssd
     elif [[ $1 == 'canvio' ]]; then
         full_system2canvio
+    elif [[ $1 == 'usb' ]]; then
+        min_system2usb
     elif [[ $1 == 'data' ]]; then
         data_ssd2canvio
     else
