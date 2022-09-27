@@ -18,10 +18,9 @@ Options:
 Status: This is an ongoing remake.
         Also experimenting with .env
 - [x] move backup setting on external/target -done on usb
+- [x] move backup setting on external/target -done on ssd
 - [ ] move backup setting on other external/target
-- [x] refactor verify usb
-- [ ] refactor other verify
-- [ ] refactor menu
+- [ ] refactor auto backup
 E0F
 }
 
@@ -55,30 +54,14 @@ _main(){
         min_system2usb
     fi
 
-    basic_system2ssd
+    if _verify ssd; then
+        basic_system2ssd
+    fi
 }
-
-_test(){
-    echo $1
-}
-#https://wiki.archlinux.org/title/Rsync#As_a_backup_utility
-# /dev/*            # only dir "dev" and not content. dev will be populated on boot.
-# "/home/data"      # will totally ignore /home/data
-#        --include "/home/private" \    # include first
-#        --exclude "/home/*" \          # then exclude
 
 basic_system2ssd(){
-    verify_ssd
-
     sudo rsync -vhaHAXS --delete \
-        --exclude={"/dev/*","/proc/*","/sys/*","/tmp/*","/run/*","/mnt/*","/media/*","/lost+found"} \
-        --exclude={"/etc/fstab","/etc/default/grub","/boot/grub/grub.cfg"} \
-        --exclude={"/home/data","/home/backup","/home/expansion"} \
-        --exclude={"/home/*/.data","/home/*/.tmp","/home/*/tmp"} \
-        --exclude={"/home/d/qemu","/var/lib/libvirt/images"} \
-        --exclude={"/home/*/.cache/chromium","/home/*/.config/chromium","/home/d/.local/opt/tor-browser"} \
-        --exclude "/home/*/.cache/mesa_shader_cache" \
-        --exclude="/home/d/video" \
+        --exclude-from="/media/arch/media/rsync_exclude.list" \
         / /media/arch
 }
 
@@ -105,7 +88,6 @@ full_system2canvio(){
 }
 
 min_system2usb(){
-
     sudo rsync -vhaHAXS --delete \
         --exclude-from="/media/kingston/media/rsync_exclude.list" \
         / /media/kingston
@@ -203,11 +185,10 @@ _verify(){
         uuid_boot=$uuid_boot_usb
         target="kingston"
         ;;
-    *) echo "errr" && exit 1 ;;
+    *) echo "[err] unknown: $@" && exit 1 ;;
     esac
 
     if [[ ! -L /dev/disk/by-uuid/$uuid ]]; then
-        echo "err"
         return 1
     fi
     # Prep boot
@@ -249,23 +230,31 @@ data_ssd2canvio(){
 _menu(){
     verify_nvme
 
-    if [[ $1 == '-h' || $1 == --help ]]; then
+    case $1 in
+    -h|--help|help)
         _help
-    elif [[ -z $1 ]]; then
+        ;;
+    '')
         _main
-    elif [[ $1 == 'ssd' || $1 == 'full' ]]; then
+        ;;
+    ssd|full)
         full_system2ssd
-    elif [[ $1 == 'canvio' ]]; then
+        ;;
+    canvio)
         full_system2canvio
-    elif [[ $1 == 'usb' ]]; then
+        ;;
+    usb)
         if _verify usb; then
             min_system2usb
         fi
-    elif [[ $1 == 'data' ]]; then
+        ;;
+    data)
         data_ssd2canvio
-    else
+        ;;
+    *)
         echo "unknown: $@"
-    fi
+        ;;
+    esac
 }
 
 [[ $0 == "$BASH_SOURCE" ]] && _menu "$@"
