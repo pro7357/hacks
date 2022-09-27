@@ -7,7 +7,7 @@ With no OPTION, do the basic backup
 
 Options:
                 Basic backup to ssd or/and pendrive.
-  ssd           Mostly full system backup to external ssd.
+  ssd | full    Full system backup (minus qemu related) to external ssd.
   canvio        Full system backup to external hdd.
   data          Backup data on ssd to external hdd.
 
@@ -20,7 +20,8 @@ Status: This is an ongoing remake.
 - [x] move backup setting on external/target -done on usb
 - [x] move backup setting on external/target -done on ssd
 - [ ] move backup setting on other external/target
-- [ ] refactor auto backup
+- [x] refactor auto backup
+- [ ] refactor nvme
 E0F
 }
 
@@ -50,31 +51,27 @@ _init(){
 _init
 
 _main(){
+    if [[ -n $1 ]]; then
+        if _verify $1; then
+            _auto $1 $2
+        fi
+
+        return
+    fi
+
     if _verify usb; then
-        min_system2usb
+        _auto kingston
     fi
 
     if _verify ssd; then
-        basic_system2ssd
+        _auto arch
     fi
 }
 
-basic_system2ssd(){
+_auto(){
     sudo rsync -vhaHAXS --delete \
-        --exclude-from="/media/arch/media/rsync_exclude.list" \
-        / /media/arch
-}
-
-# full except qemu image
-full_system2ssd(){
-    verify_ssd
-
-    sudo rsync -vhaHAXS --delete \
-        --exclude={"/dev/*","/proc/*","/sys/*","/tmp/*","/run/*","/mnt/*","/media/*","/lost+found"} \
-        --exclude={"/etc/fstab","/etc/default/grub","/boot/grub/grub.cfg"} \
-        --exclude={"/home/data","/home/backup","/home/expansion"} \
-        --exclude={"/home/d/qemu","/var/lib/libvirt/images"} \
-        / /media/arch
+        --exclude-from="/media/$1/media/${2}rsync_exclude.list" \
+        / /media/$1
 }
 
 full_system2canvio(){
@@ -85,12 +82,6 @@ full_system2canvio(){
         --exclude={"/etc/fstab","/etc/default/grub","/boot/grub/grub.cfg"} \
         --exclude={"/home/data","/home/backup","/home/expansion"} \
         / /media/canvio
-}
-
-min_system2usb(){
-    sudo rsync -vhaHAXS --delete \
-        --exclude-from="/media/kingston/media/rsync_exclude.list" \
-        / /media/kingston
 }
 
 verify_nvme(){
@@ -110,30 +101,6 @@ verify_nvme(){
 
     # Verify boot
     if [[ ! -f /boot/initramfs-linux-fallback.img ]]; then
-        status="Error: fail mounting backup boot"
-        if $verbose; then echo "$status"; fi
-        exit 2
-    fi
-}
-
-verify_ssd(){
-    # Full system backup which is bootable on external ssd.
-    if [[ -e /dev/disk/by-uuid/$uuid_ssd && \
-        -f /media/arch/home/d/.bashrc ]]; then
-        :
-    else
-        status="Error: ssd not found"
-        if $verbose; then echo "$status"; fi
-        exit 3
-    fi
-
-    # Prep boot
-    if [[ ! -f /media/arch/boot/initramfs-linux-fallback.img ]]; then
-        sudo mount -t ext4 /dev/disk/by-uuid/$uuid_boot_ssd /media/arch/boot
-    fi
-
-    # Verify boot
-    if [[ ! -f /media/arch/boot/initramfs-linux-fallback.img ]]; then
         status="Error: fail mounting backup boot"
         if $verbose; then echo "$status"; fi
         exit 2
@@ -170,7 +137,7 @@ _verify(){
         uuid_boot=$uuid_boot_nvme
         target=".."
         ;;
-    ssd)
+    ssd|arch)
         uuid=$uuid_ssd
         uuid_boot=$uuid_boot_ssd
         target="arch"
@@ -231,29 +198,13 @@ _menu(){
     verify_nvme
 
     case $1 in
-    -h|--help|help)
-        _help
-        ;;
-    '')
-        _main
-        ;;
-    ssd|full)
-        full_system2ssd
-        ;;
-    canvio)
-        full_system2canvio
-        ;;
-    usb)
-        if _verify usb; then
-            min_system2usb
-        fi
-        ;;
-    data)
-        data_ssd2canvio
-        ;;
-    *)
-        echo "unknown: $@"
-        ;;
+        -h|--help|help) _help ;;
+        '') _main;;
+        ssd|full) _main arch full ;;
+        canvio) full_system2canvio ;;
+        usb) _main usb ;;
+        data) data_ssd2canvio ;;
+        *) echo "[err] unknon arg: $@" ;;
     esac
 }
 
