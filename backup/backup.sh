@@ -6,7 +6,7 @@ Usage: backup [OPTION] ...
 With no OPTION, do the basic backup
 
 Options:
-                Basic backup to ssd or/and pendrive.
+                Basic backup to external device(s)
   ssd | full    Full system backup (minus qemu related) to external ssd.
   canvio        Full system backup to external hdd.
   data          Backup data on ssd to external hdd.
@@ -14,16 +14,13 @@ Options:
   -q, --quiet    do not print anything to stdout
   -v, --verbose  increase verbosity
   -h, --help     display this help and exit
-
-Status: This is an ongoing remake.
-        Also experimenting with .env
-- [x] move backup setting on external/target -done on usb
-- [x] move backup setting on external/target -done on ssd
-- [ ] move backup setting on other external/target
-- [x] refactor auto backup
-- [ ] refactor nvme
 E0F
 }
+
+#- [x] move backup setting to external target
+#- [x] refactor: from ~300 to ~150 lines
+#- [ ] usb -more specific
+#- [ ] expansion
 
 verbose=true
 debug=true
@@ -31,16 +28,6 @@ base="$HOME/hacks/backup"
 source "$base/.env"
 
 _init(){
-    # Mostly for readablity
-    uuid_nvme=$uuid_nvme
-    uuid_boot_nvme=$uuid_boot_nvme
-    uuid_ssd=$uuid_ssd
-    uuid_boot_ssd=$uuid_boot_ssd
-    uuid_hdd=$uuid_hdd
-    uuid_boot_hdd=$uuid_boot_hdd
-    uuid_usb=$uuid_usb
-    uuid_boot_usb=$uuid_boot_usb
-
     # Verify loading .env
     if [[ -z $uuid_ssd ]]; then
         status="Error: fail sourcing .env"
@@ -55,7 +42,6 @@ _main(){
         if _verify $1; then
             _auto $1 $2
         fi
-
         return
     fi
 
@@ -66,68 +52,16 @@ _main(){
     if _verify ssd; then
         _auto arch
     fi
+
+    if _verify hdd; then
+        _auto canvio
+    fi
 }
 
 _auto(){
     sudo rsync -vhaHAXS --delete \
         --exclude-from="/media/$1/media/${2}rsync_exclude.list" \
         / /media/$1
-}
-
-full_system2canvio(){
-    verify_hdd
-
-    sudo rsync -vhaHAXS --delete \
-        --exclude={"/dev/*","/proc/*","/sys/*","/tmp/*","/run/*","/mnt/*","/media/*","/lost+found"} \
-        --exclude={"/etc/fstab","/etc/default/grub","/boot/grub/grub.cfg"} \
-        --exclude={"/home/data","/home/backup","/home/expansion"} \
-        / /media/canvio
-}
-
-verify_nvme(){
-    if [[ -e /dev/disk/by-uuid/$uuid_nvme && \
-        -f /home/d/.bashrc ]]; then
-        return 0
-    else
-        status="Error: nvme not found"
-        if $verbose; then echo "$status"; fi
-        exit 3
-    fi
-
-    # Prep boot
-    if [[ ! -f /boot/initramfs-linux-fallback.img ]]; then
-        sudo mount -t ext4 /dev/disk/by-uuid/$uuid_boot_nvme /boot
-    fi
-
-    # Verify boot
-    if [[ ! -f /boot/initramfs-linux-fallback.img ]]; then
-        status="Error: fail mounting backup boot"
-        if $verbose; then echo "$status"; fi
-        exit 2
-    fi
-}
-
-verify_hdd(){
-    if [[ -e /dev/disk/by-uuid/$uuid_hhd && \
-        -f /media/canvio/home/d/.bashrc ]]; then
-        :
-    else
-        status="Error: external hdd not found"
-        if $verbose; then echo "$status"; fi
-        exit 3
-    fi
-
-    # Prep boot
-    if [[ ! -f /media/canvio/boot/initramfs-linux-fallback.img ]]; then
-        sudo mount -t ext4 /dev/disk/by-uuid/$uuid_boot_hdd /media/canvio/boot
-    fi
-
-    # Verify boot
-    if [[ ! -f /media/canvio/boot/initramfs-linux-fallback.img ]]; then
-        status="Error: fail mounting backup boot"
-        if $verbose; then echo "$status"; fi
-        exit 2
-    fi
 }
 
 _verify(){
@@ -142,7 +76,7 @@ _verify(){
         uuid_boot=$uuid_boot_ssd
         target="arch"
         ;;
-    canvio)
+    hdd|canvio)
         uuid=$uuid_hdd
         uuid_boot=$uuid_boot_hdd
         target="canvio"
@@ -172,7 +106,7 @@ _verify(){
 
     # Verify mounted
     if [[ ! -f /media/$target/media/rsync_exclude.list ]]; then
-        status="Error: external usb not found"
+        status="Error: $target not found"
         if $verbose; then echo "$status"; fi
         return 3
     fi
@@ -195,15 +129,17 @@ data_ssd2canvio(){
 }
 
 _menu(){
-    verify_nvme
+    if ! _verify nvme; then
+        return 1
+    fi
 
     case $1 in
-        -h|--help|help) _help ;;
         '') _main;;
-        ssd|full) _main arch full ;;
-        canvio) full_system2canvio ;;
         usb) _main usb ;;
+        ssd|full) _main arch full ;;
+        hdd|canvio) _main canvio ;;
         data) data_ssd2canvio ;;
+        -h|--help|help) _help ;;
         *) echo "[err] unknon arg: $@" ;;
     esac
 }
