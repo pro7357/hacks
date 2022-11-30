@@ -17,9 +17,8 @@ Options:
 E0F
 }
 
-#- [x] move backup setting to external target
-#- [x] refactor: from ~300 to ~150 lines
-#- [ ] usb -more specific
+#- [x] usb -more specific -rsync_exclude.list
+#- [x] usb or ssd to canvio
 #- [ ] expansion
 
 verbose=true
@@ -55,6 +54,13 @@ _main(){
 
     if _verify hdd; then
         _auto canvio
+
+        if _verify usb; then
+            500gb_usb2canvio
+        fi
+        if _verify ssd; then
+            data_ssd2canvio
+        fi
     fi
 }
 
@@ -126,6 +132,20 @@ data_ssd2canvio(){
 
     sudo rsync -vhaHAXS --delete \
         /media/arch/home/data/ /media/canvio/home/data
+}
+
+500gb_usb2canvio(){
+    if [[ -d /media/kingston/home/backup/500GB && \
+        -d /media/canvio/home/backup/500GB ]]; then
+        :
+    else
+        status="Error: folder backup/500GB on ssd or canvio is missing"
+        if $verbose; then echo "$status"; fi
+        exit
+    fi
+
+    sudo rsync -vhaHAXS --delete \
+        /media/kingston/home/backup/500GB/ /media/canvio/home/backup/500GB
 }
 
 _menu(){
