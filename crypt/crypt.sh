@@ -14,7 +14,7 @@ Option:
   -q, --quiet   do not print anything to stdout. only stderr.
 Status:
 - [x] add or overwrite random string at top and bottom
-- [ ] cry delete automatic close autosave first
+- [ ] cry delete will automatic close autosave first
 - [ ] update readme
 E0F
 }
@@ -185,14 +185,14 @@ _decrypt(){
     # copy to plain_folder
     if [[ -e /tmp/$folder_name ]]; then
         echo "/tmp/$folder_name already exist"
-        echo "delete or move it first to continue"
+        echo "delete ($alias_name delete) or move it first to continue"
         exit
     fi
     cp -r "$encrypted_folder" "/tmp/$folder_name"
 
     # decrypt
     echo "Caution: DO NOT continue re-enter phrase if entered wrong once"
-    echo "         simply cancel ctrl+c, and restart again."
+    echo "         simply cancel (ctrl+c), $alias_name delete and restart again."
     # because multifile will skip the file with the wrong phrase.
 
     find /tmp/$folder_name -iname '*.gpg' | \
