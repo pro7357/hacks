@@ -13,13 +13,15 @@ Option:
   -v, --verbose No effect. This is the default.
   -q, --quiet   do not print anything to stdout. only stderr.
 Status:
-- [x] .env
+- [x] add or overwrite random string at top and bottom
+- [ ] cry delete automatic close autosave first
 - [ ] update readme
 E0F
 }
 
 base="$HOME/hacks/crypt"
 source "$base/.env"
+add_random_string=true
 
 _env_variable(){
     # Mostly for readability
@@ -92,8 +94,23 @@ _encrypt(){
         done
 
     ## Encrypt
-    find /tmp/$folder_name -type f -newer /tmp/$folder_name/updatemark | \
-        gpg --multifile -eu $public_key_id -r $public_key_id
+    if $add_random_string; then
+        for file in $(find /tmp/$folder_name -type f -newer /tmp/$folder_name/updatemark); do
+            lines=$(head -n2 $file)
+            line1=${lines::2}
+            line2=$(echo "$lines" | tail -n1 | head -c2)
+            if [[ $line1 == '# ' ]]; then
+                _random 'new' "$file"
+            elif [[ $line2 == '# ' ]]; then
+                _random 'overwrite' "$file"
+            fi
+
+            echo "$file"
+        done | gpg --multifile -eu $public_key_id -r $public_key_id
+    else
+        find /tmp/$folder_name -type f -newer /tmp/$folder_name/updatemark | \
+            gpg --multifile -eu $public_key_id -r $public_key_id
+    fi
 
     ## Update Crypt
     find /tmp/$folder_name -type f -iname '*.gpg' | \
@@ -123,6 +140,21 @@ _encrypt(){
     date +'%Y%m%d_%H:%M:%S' >> /tmp/$folder_name/updatemark
     #status="Done updating"
     #if $verbose; then echo "$status"; fi
+}
+
+_random(){
+    # Add or overwrite random string on top and bottom of file
+    random_number=$(( 76 + $RANDOM % 48 ))
+    random_string=$(tr -dc '[:alnum:]' </dev/urandom | dd bs=1 count="$random_number" 2>/dev/null)
+    random_number=$(( 76 + $RANDOM % 48 ))
+    random_string2=$(tr -dc '[:alnum:]' </dev/urandom | dd bs=1 count="$random_number" 2>/dev/null)
+    if [[ $1 == 'new' ]]; then
+        sed "1i $random_string" -i "$2"
+        echo "$random_string2" >> "$2"
+    elif [[ $1 == 'overwrite' ]]; then
+        sed "1 s/.*/$random_string/" -i "$2"
+        sed "$ s/.*/$random_string2/" -i "$2"
+    fi
 }
 
 _autosave(){
