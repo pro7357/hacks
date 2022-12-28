@@ -96,7 +96,7 @@ _encrypt(){
     ## Encrypt
     if $add_random_string; then
         for file in $(find /tmp/$folder_name -type f -newer /tmp/$folder_name/updatemark); do
-            lines=$(head -n2 $file)
+            lines=$(head -n2 "$file")
             line1=${lines::2}
             line2=$(echo "$lines" | tail -n1 | head -c2)
             if [[ $line1 == '# ' ]]; then
