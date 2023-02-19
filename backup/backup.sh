@@ -17,9 +17,8 @@ Options:
 E0F
 }
 
-#- [x] usb -more specific -rsync_exclude.list
-#- [x] usb or ssd to canvio
-#- [ ] expansion
+#- [x] expansion -canvio to expansion
+#- [ ] more comment to explain things
 
 verbose=true
 debug=true
@@ -61,6 +60,9 @@ _main(){
         if _verify ssd; then
             data_ssd2canvio
         fi
+        if _verify expansion; then
+            canvio_canvio2expansion
+        fi
     fi
 }
 
@@ -92,12 +94,24 @@ _verify(){
         uuid_boot=$uuid_boot_usb
         target="kingston"
         ;;
+    expansion)
+        uuid=$uuid_exp
+        uuid_boot=$uuid_boot_exp
+        target="expansion"
+        ;;
+
     *) echo "[err] unknown: $@" && exit 1 ;;
     esac
 
     if [[ ! -L /dev/disk/by-uuid/$uuid ]]; then
         return 1
     fi
+
+    # Expansion doesn't have boot
+    if [[ $target == 'expansion' ]]; then
+        return 0
+    fi
+
     # Prep boot
     if [[ ! -f /media/$target/boot/initramfs-linux-fallback.img ]]; then
         sudo mount -t ext4 /dev/disk/by-uuid/$uuid_boot /media/$target/boot
@@ -148,6 +162,20 @@ data_ssd2canvio(){
         /media/kingston/home/backup/500GB/ /media/canvio/home/backup/500GB
 }
 
+canvio_canvio2expansion(){
+    if [[ -d /media/expansion/home/canvio && \
+        -d /media/canvio/home/canvio ]]; then
+        :
+    else
+        status="Error: folder canvio on expansion or canvio is missing"
+        if $verbose; then echo "$status"; fi
+        exit
+    fi
+
+    sudo rsync -vhaHAXS --delete \
+        /media/canvio/home/canvio/ /media/expansion/home/canvio
+}
+
 _menu(){
     if ! _verify nvme; then
         return 1
@@ -159,6 +187,7 @@ _menu(){
         ssd|full) _main arch full ;;
         hdd|canvio) _main canvio ;;
         data) data_ssd2canvio ;;
+        expansion) canvio_canvio2expansion ;;
         -h|--help|help) _help ;;
         *) echo "[err] unknon arg: $@" ;;
     esac
