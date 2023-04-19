@@ -45,6 +45,7 @@ _main(){
 
     if _verify usb; then
         _auto kingston
+        kingston_qemu
     fi
 
     if _verify ssd; then
@@ -174,6 +175,23 @@ canvio_canvio2expansion(){
 
     sudo rsync -vhaHAXS --delete \
         /media/canvio/home/canvio/ /media/expansion/home/canvio
+}
+
+kingston_qemu(){
+    if [[ -d /media/kingston/home/d/qemu && \
+        -d /home/d/qemu ]]; then
+        :
+    else
+        status="Error: folder qemu on kingston or home is missing"
+        if $verbose; then echo "$status"; fi
+        exit
+    fi
+
+    sudo rsync --max-size=5000m -vhaHAXS --delete \
+        /home/d/qemu/ /media/kingston/home/d/qemu
+
+    sudo rsync --min-size=4999m --whole-file -vhaHAXS --delete \
+        /home/d/qemu/ /media/kingston/home/d/qemu
 }
 
 _menu(){
