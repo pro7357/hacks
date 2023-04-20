@@ -187,10 +187,10 @@ kingston_qemu(){
         exit
     fi
 
-    sudo rsync --max-size=1500m -vh --info=progress2 -rltgoHS --delete \
+    sudo rsync --max-size=1500m -vh --info=progress2 -rtgoS --delete \
         /home/d/qemu/ /media/kingston/home/d/qemu
 
-    sudo rsync --min-size=1499m --whole-file -vh --progress -rltgoHS --delete \
+    sudo rsync --min-size=1499m --whole-file -vh --progress -rtgoS --delete \
         /home/d/qemu/ /media/kingston/home/d/qemu
 }
 
