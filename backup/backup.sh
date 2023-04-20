@@ -44,7 +44,7 @@ _main(){
     fi
 
     if _verify usb; then
-        _auto kingston
+        #_auto kingston
         kingston_qemu
     fi
 
@@ -108,8 +108,8 @@ _verify(){
         return 1
     fi
 
-    # Expansion doesn't have boot
-    if [[ $target == 'expansion' ]]; then
+    # Expansion and Kingston doesn't have boot
+    if [[ $target == 'expansion' || $target == 'kingston' ]]; then
         return 0
     fi
 
@@ -187,10 +187,10 @@ kingston_qemu(){
         exit
     fi
 
-    sudo rsync --max-size=5000m -vhaHAXS --delete \
+    sudo rsync --max-size=1500m -vh --info=progress2 -rltgoHS --delete \
         /home/d/qemu/ /media/kingston/home/d/qemu
 
-    sudo rsync --min-size=4999m --whole-file -vhaHAXS --delete \
+    sudo rsync --min-size=1499m --whole-file -vh --progress -rltgoHS --delete \
         /home/d/qemu/ /media/kingston/home/d/qemu
 }
 
