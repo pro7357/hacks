@@ -186,11 +186,12 @@ kingston_qemu(){
         if $verbose; then echo "$status"; fi
         exit
     fi
-
+    # kingston datatraveler-max, 1.5G in less than 3 seconds, then 50~100MBps for 2Gig, even slower <10MBps after that.
+    # reformat to exfat but it didn't improve. 
     sudo rsync --max-size=1500m -vh --info=progress2 -rtgoS --delete \
         /home/d/qemu/ /media/kingston/home/d/qemu
-
-    sudo rsync --min-size=1499m --whole-file -vh --progress -rtgoS --delete \
+    # this workaround might improve.. or not. i give up.
+    sudo rsync --min-size=1499m --no-whole-file --inplace -vh --progress -rtgoS --delete \
         /home/d/qemu/ /media/kingston/home/d/qemu
 }
 
