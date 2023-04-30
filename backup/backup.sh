@@ -16,9 +16,12 @@ Options:
   -h, --help     display this help and exit
 E0F
 }
-
-#- [x] expansion -canvio to expansion
+# [ref for absolute and relative](https://unix.stackexchange.com/questions/83394/rsync-exclude-directory-not-working)
+#rsync --exclude=/home/ben/build/ --exclude=/home/ben/.ccache -arv /home home-all/   #absolute work but not recommended
+#rsync --exclude=/build --exclude=/.ccache -arv /home/ben/ home-ben/                 #recommended relative
+#- [x] backup specific folder in /media
 #- [ ] more comment to explain things
+#- [ ] change arch -> crucial
 
 verbose=true
 debug=true
@@ -52,8 +55,9 @@ _main(){
         _auto arch
     fi
 
-    if _verify hdd; then
+    if _verify canvio; then
         _auto canvio
+        media_nvme2canvio
 
         if _verify usb; then
             500gb_usb2canvio
@@ -147,6 +151,23 @@ data_ssd2canvio(){
 
     sudo rsync -vhaHAXS --delete \
         /media/arch/home/data/ /media/canvio/home/data
+}
+
+media_nvme2canvio(){
+    if [[ -d /media/git && \
+        -d /media/canvio/home/media ]]; then
+        :
+    else
+        status="Error: data on ssd or canvio is missing"
+        if $verbose; then echo "$status"; fi
+        exit
+    fi
+
+    # this is the way, absolute and relative
+    sudo rsync -vhaHAXS --delete \
+        --include={'/download','/git','/qemu'} \
+		--exclude "/*" \
+        /media/ /media/canvio/home/media/
 }
 
 500gb_usb2canvio(){
