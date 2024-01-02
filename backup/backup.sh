@@ -19,10 +19,8 @@ E0F
 # [ref for absolute and relative](https://unix.stackexchange.com/questions/83394/rsync-exclude-directory-not-working)
 #rsync --exclude=/home/ben/build/ --exclude=/home/ben/.ccache -arv /home home-all/   #absolute work but not recommended
 #rsync --exclude=/build --exclude=/.ccache -arv /home/ben/ home-ben/                 #recommended relative
-#- [x] backup specific folder in /media
-#- [ ] more comment to explain things
-#- [ ] change arch -> crucial
 #- [x] remove full backup on ssd
+#- [x] change arch -> crucial
 
 verbose=true
 debug=true
@@ -53,7 +51,7 @@ _main(){
     fi
 
     if _verify ssd; then
-        _auto arch
+        _auto crucial
     fi
 
     if _verify canvio; then
@@ -85,10 +83,10 @@ _verify(){
         uuid_boot=$uuid_boot_nvme
         target=".."
         ;;
-    ssd|arch)
+    ssd|crucial)
         uuid=$uuid_ssd
         uuid_boot=$uuid_boot_ssd
-        target="arch"
+        target="crucial"
         ;;
     hdd|canvio)
         uuid=$uuid_hdd
@@ -141,7 +139,7 @@ _verify(){
 }
 
 data_ssd2canvio(){
-    if [[ -d /media/arch/home/data && \
+    if [[ -d /media/crucial/home/data && \
         -d /media/canvio/home/data ]]; then
         :
     else
@@ -151,7 +149,7 @@ data_ssd2canvio(){
     fi
 
     sudo rsync -vhaHAXS --delete \
-        /media/arch/home/data/ /media/canvio/home/data
+        /media/crucial/home/data/ /media/canvio/home/data
 }
 
 media_nvme2canvio(){
@@ -225,7 +223,7 @@ _menu(){
     case $1 in
         '') _main;;
         usb) _main usb ;;
-        ssd) _main arch ;;
+        ssd) _main crucial ;;
         hdd|canvio) _main canvio ;;
         data) data_ssd2canvio ;;
         expansion) canvio_canvio2expansion ;;
