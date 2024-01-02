@@ -7,7 +7,7 @@ With no OPTION, do the basic backup
 
 Options:
                 Basic backup to external device(s)
-  ssd | full    Full system backup (minus qemu related) to external ssd.
+  ssd           Specific backup to external ssd.
   canvio        Full system backup to external hdd.
   data          Backup data on ssd to external hdd.
 
@@ -22,6 +22,7 @@ E0F
 #- [x] backup specific folder in /media
 #- [ ] more comment to explain things
 #- [ ] change arch -> crucial
+#- [x] remove full backup on ssd
 
 verbose=true
 debug=true
@@ -41,7 +42,7 @@ _init
 _main(){
     if [[ -n $1 ]]; then
         if _verify $1; then
-            _auto $1 $2
+            _auto $1
         fi
         return
     fi
@@ -73,7 +74,7 @@ _main(){
 
 _auto(){
     sudo rsync -vhaHAXS --delete \
-        --exclude-from="/media/$1/media/${2}rsync_exclude.list" \
+        --exclude-from="/media/$1/media/rsync_exclude.list" \
         / /media/$1
 }
 
@@ -224,7 +225,7 @@ _menu(){
     case $1 in
         '') _main;;
         usb) _main usb ;;
-        ssd|full) _main arch full ;;
+        ssd) _main arch ;;
         hdd|canvio) _main canvio ;;
         data) data_ssd2canvio ;;
         expansion) canvio_canvio2expansion ;;

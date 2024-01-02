@@ -22,6 +22,7 @@ _menu(){
     elif [[ "${@:(-1)}" == '-' ]]; then
         echo "see _stdin in notdefault.sh"
     elif [[ -z $1 ]]; then
+        #_main "$(date +%F)"
         _main
     else
         #_main "$@"

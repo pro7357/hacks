@@ -48,7 +48,7 @@ def main():
         # Compare piece hash with expected hash
         piece_hash = hashlib.sha1(piece).digest()
         if (piece_hash != pieces.read(20)):
-            #corruption_failure()
+            corruption_failure()
             break
     # ensure we've read all pieces
     if pieces.read():
