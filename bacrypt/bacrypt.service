@@ -1,0 +1,6 @@
+[Unit]
+Description=Backup and encrypt files
+
+[Service]
+Type=oneshot
+ExecStart=%h/bash/bacrypt.sh
