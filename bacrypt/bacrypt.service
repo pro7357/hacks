@@ -3,4 +3,4 @@ Description=Backup and encrypt files
 
 [Service]
 Type=oneshot
-ExecStart=%h/bash/bacrypt.sh
+ExecStart=/home/bacrypt/timed.sh

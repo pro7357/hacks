@@ -12,7 +12,7 @@ load_config(){
     local config_file="$HOME/.config/bacrypt/config"
     if [[ -f "$config_file" ]]; then
         source "$config_file"
-        if [[ -z "$crypt" || -z "$key_id" || ${#base_paths[@]} -eq 0 ]]; then
+        if [[ -z "$bacrypt" || -z "$key_id" || ${#base_paths[@]} -eq 0 ]]; then
             logger -p 2 "[bacrypt] Critical: Configuration not properly loaded."
             exit 1
         fi
@@ -29,7 +29,7 @@ _encrypt(){
         name=$(sha256sum <<< "$key_id/${file#$base/}" | head -c 64)
         logger "$name $file"
         tar -P --transform="s|$base/||" -c "$file" \
-            | gpg --encrypt --recipient $key_id > "$crypt/${base##*/}/${name::2}/${name:2}"
+            | gpg --encrypt --recipient $key_id > "$bacrypt/${base##*/}/${name::2}/${name:2}"
 
         # Update the marker file
         touch "$base/grass"
