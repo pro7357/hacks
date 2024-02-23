@@ -1,3 +1,0 @@
-crypt="/home/crypt"
-key_id="somewan@protonmail.com"
-base_paths=("$HOME/python" "$HOME/bash")

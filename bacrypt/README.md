@@ -2,6 +2,10 @@
 
 Bacrypt is a suite of bash scripts for backing up and encrypting files.
 
+The encrypted files intended to be store online at github, so the files name are masked (to hide embarassing file name).
+
+GnuPG id (ie. pro7357@protonmail.com) is used to padded the file name before converted to sha256sum hash. Keep the id secret for maximum privacy.
+
 ## Components
 
 ### 1. Timed.sh
