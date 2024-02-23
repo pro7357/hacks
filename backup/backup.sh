@@ -1,12 +1,13 @@
 #!/usr/bin/bash
 _help(){ cat <<E0F
+WARNING: This is outdated. A rewrite was in progress, now stalled.:
 Caution: Much hardcoded, therefore mostly useless to anyone but me.
 
 Usage: backup [OPTION] ...
-With no OPTION, do the basic backup
+With no OPTION, do the auto backup
 
 Options:
-                Basic backup to external device(s)
+                Auto bakup to external device(s)
   ssd           Specific backup to external ssd.
   canvio        Full system backup to external hdd.
   data          Backup data on ssd to external hdd.
@@ -18,9 +19,7 @@ E0F
 }
 # [ref for absolute and relative](https://unix.stackexchange.com/questions/83394/rsync-exclude-directory-not-working)
 #rsync --exclude=/home/ben/build/ --exclude=/home/ben/.ccache -arv /home home-all/   #absolute work but not recommended
-#rsync --exclude=/build --exclude=/.ccache -arv /home/ben/ home-ben/                 #recommended relative
-#- [x] remove full backup on ssd
-#- [x] change arch -> crucial
+#rsync --exclude=/build --exclude=/.ccache -arv /home/ben/ home/ben/                 #recommended relative
 
 verbose=true
 debug=true
@@ -45,22 +44,15 @@ _main(){
         return
     fi
 
-    if _verify usb; then
-        #_auto kingston
-        kingston_qemu
-    fi
-
     if _verify ssd; then
-        _auto crucial
+        #_auto crucial
+        user_h2crucial
     fi
 
     if _verify canvio; then
         _auto canvio
         media_nvme2canvio
 
-        if _verify usb; then
-            500gb_usb2canvio
-        fi
         if _verify ssd; then
             data_ssd2canvio
         fi
@@ -111,8 +103,8 @@ _verify(){
         return 1
     fi
 
-    # Expansion and Kingston doesn't have boot
-    if [[ $target == 'expansion' || $target == 'kingston' ]]; then
+    # These doesn't have boot
+    if [[ $target == 'expansion' || $target == 'kingston' || $target == 'crucial']]; then
         return 0
     fi
 
@@ -136,6 +128,11 @@ _verify(){
     fi
 
     return 0
+}
+
+user_h2crucial(){
+    sudo rsync -vhaHAXS --delete \
+        /home/h/ /media/crucial/home/h
 }
 
 data_ssd2canvio(){
@@ -169,20 +166,6 @@ media_nvme2canvio(){
         /media/ /media/canvio/home/media/
 }
 
-500gb_usb2canvio(){
-    if [[ -d /media/kingston/home/backup/500GB && \
-        -d /media/canvio/home/backup/500GB ]]; then
-        :
-    else
-        status="Error: folder backup/500GB on ssd or canvio is missing"
-        if $verbose; then echo "$status"; fi
-        exit
-    fi
-
-    sudo rsync -vhaHAXS --delete \
-        /media/kingston/home/backup/500GB/ /media/canvio/home/backup/500GB
-}
-
 canvio_canvio2expansion(){
     if [[ -d /media/expansion/home/canvio && \
         -d /media/canvio/home/canvio ]]; then
@@ -196,25 +179,6 @@ canvio_canvio2expansion(){
     sudo rsync -vhaHAXS --delete \
         /media/canvio/home/canvio/ /media/expansion/home/canvio
 }
-
-kingston_qemu(){
-    if [[ -d /media/kingston/home/d/qemu && \
-        -d /home/d/qemu ]]; then
-        :
-    else
-        status="Error: folder qemu on kingston or home is missing"
-        if $verbose; then echo "$status"; fi
-        exit
-    fi
-    # kingston datatraveler-max, 1.5G in less than 3 seconds, then 50~100MBps for 2Gig, even slower <10MBps after that.
-    # reformat to exfat but it didn't improve. 
-    sudo rsync --max-size=1500m -vh --info=progress2 -rtgoS --delete \
-        /home/d/qemu/ /media/kingston/home/d/qemu
-    # this workaround might improve.. or not. i give up.
-    sudo rsync --min-size=1499m --no-whole-file --inplace -vh --progress -rtgoS --delete \
-        /home/d/qemu/ /media/kingston/home/d/qemu
-}
-
 _menu(){
     if ! _verify nvme; then
         return 1
@@ -222,7 +186,6 @@ _menu(){
 
     case $1 in
         '') _main;;
-        usb) _main usb ;;
         ssd) _main crucial ;;
         hdd|canvio) _main canvio ;;
         data) data_ssd2canvio ;;
