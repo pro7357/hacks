@@ -42,4 +42,10 @@ _main(){
         _encrypt "$p"
     done
 }
+_main(){
+    load_config
+    for p in "${base_paths[@]}"; do
+        [ -d "$p" ] && _encrypt "$p"
+    done
+}
 _main
