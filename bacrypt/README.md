@@ -1,12 +1,10 @@
-# Bacrypt - Backup and Encrypt Files Suite
+# Bacrypt - Automatic Backup and Encrypt Files
 
-Bacrypt is a suite of bash scripts for backing up and encrypting files.
-
-The encrypted files intended to be store online at github, so the files name are masked (to hide embarassing file name).
+Automatic backup and encrypting files using GnuPG and Systemd Timers.
 
 plain_file.txt -> tar (archived to preserve filename, date, etc.) -> encrypted by GnuPG -> filename in sha256sum hash.
 
-GnuPG id (ie. pro7357@protonmail.com) is used to pad the file name before converted to sha256sum hash. Keep the id secret for maximum privacy.
+Encrypted filenames are masked. GnuPG user id (ie. pro7357@protonmail.com) is used to pad the filename before converted to sha256sum hash. Keep the id secret for maximum privacy.
 
 ## Components
 
