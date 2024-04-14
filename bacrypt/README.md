@@ -6,6 +6,14 @@ plain_file.txt -> tar (archived to preserve filename, date, etc.) -> encrypted b
 
 Encrypted filenames are masked. GnuPG user id (ie. pro7357@protonmail.com) is used to pad the filename before converted to sha256sum hash. Keep the id secret for maximum privacy.
 
+## Workflow
+
+1. git clone your private repo that contain bacrypt scripts and your encrypted files.
+
+2. decrypt files to temporary folder and work from there.
+
+3. That it. The scripts running in background, encrypting your working files and pushed it to your private repo.
+
 ## Components
 
 ### 1. timed.sh
@@ -78,9 +86,9 @@ create new directory for encrypted file. ie /home/bacrypt/python and /home/bacry
 enter newly created directory then run these bash code to create sub-directory 00 to ff, all 256 of them.
 
 ``` bash
-# Function to create directories '00' to 'ff'
-for i in {0..255}; do
-    hex=$(printf "%02x" "$i")
+# Function to create directories '0' to 'f'
+for i in {0..15}; do
+    hex=$(printf "%x" "$i")
     mkdir -p "$hex"
 done
 ```
