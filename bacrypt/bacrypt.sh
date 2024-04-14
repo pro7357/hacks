@@ -29,7 +29,7 @@ _encrypt(){
         name=$(sha256sum <<< "$key_id/${file#$base/}" | head -c 64)
         logger "$name $file"
         tar -P --transform="s|$base/||" -c "$file" \
-            | gpg --encrypt --recipient $key_id > "$crypt/${base##*/}/${name::2}/${name:2}"
+            | gpg --encrypt --recipient $key_id > "$crypt/${base##*/}/${name::1}/${name}"
 
         # Update the marker file
         touch "$base/grass"
