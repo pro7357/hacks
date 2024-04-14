@@ -1,6 +1,0 @@
-[Unit]
-Description=Backup and encrypt files
-
-[Service]
-Type=oneshot
-ExecStart=/home/bacrypt/timed.sh
