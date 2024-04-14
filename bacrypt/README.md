@@ -1,5 +1,7 @@
 # Bacrypt - Automatic Backup and Encrypt Files
 
+WARNING: I"m rewriting this. Using Systemd Timers just making things more complicated. It simpler to run a daemon in the background.
+
 Automatic backup and encrypting files using GnuPG and Systemd Timers.
 
 plain_file.txt -> tar (archived to preserve filename, date, etc.) -> encrypted by GnuPG -> filename in sha256sum hash.
@@ -22,6 +24,26 @@ Caution: Work in progress. Don't use this unless you know about these stuff:
 - GnuPG (gpg)
 - Tar utility
 - Systemd (for using timers)
+
+
+## Install
+
+### Recommended Setup
+
+1. Fork this repo.
+
+2. git clone the forked repo.
+
+3. create a branch and make it private.
+
+### Actual install
+
+1. Use the private branch.
+
+2. edit bacrypt.config
+
+3. run run.sh
+
 
 ## Components
 
