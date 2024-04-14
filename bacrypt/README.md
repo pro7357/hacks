@@ -14,6 +14,15 @@ Encrypted filenames are masked. GnuPG user id (ie. pro7357@protonmail.com) is us
 
 3. That it. The scripts running in background, encrypting your working files and pushed it to your private repo.
 
+## Prerequisites
+
+Caution: Work in progress. Don't use this unless you know about these stuff:
+
+- Bash shell
+- GnuPG (gpg)
+- Tar utility
+- Systemd (for using timers)
+
 ## Components
 
 ### 1. timed.sh
@@ -40,15 +49,6 @@ install.sh is a helper script that simplifies the setup process by:
 - Installing dependencies (if needed)
 - Setting up configuration files
 - Installing systemd units for automated backups
-
-## Prerequisites
-
-Know about these stuff:
-
-- Bash shell
-- GnuPG (gpg)
-- Tar utility
-- Systemd (for using timers)
 
 ## Manual Installation
 
